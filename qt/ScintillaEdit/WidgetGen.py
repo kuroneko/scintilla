@@ -4,9 +4,10 @@
 
 import sys
 import os
+import os.path
 import getopt
 
-scintillaDirectory = "../.."
+scintillaDirectory = "%s/../.."%(os.path.dirname(sys.argv[0]))
 scintillaScriptsDirectory = os.path.join(scintillaDirectory, "scripts")
 sys.path.append(scintillaScriptsDirectory)
 import Face
@@ -212,7 +213,7 @@ def usage():
 def readInterface(cleanGenerated):
 	f = Face.Face()
 	if not cleanGenerated:
-		f.ReadFromFile("../../include/Scintilla.iface")
+		f.ReadFromFile(os.path.dirname(sys.argv[0])+"/../../include/Scintilla.iface")
 	return f
 
 def main(argv):
@@ -237,12 +238,12 @@ def main(argv):
 	options = {"qtStyle": qtStyleInterface}
 	f = readInterface(cleanGenerated)
 	try:
-		GenerateFile("ScintillaEdit.cpp.template", "ScintillaEdit.cpp",
+		GenerateFile(os.path.dirname(sys.argv[0])+"/ScintillaEdit.cpp.template", "ScintillaEdit.cpp",
 			"/* ", True, printCPPFile(f, options))
-		GenerateFile("ScintillaEdit.h.template", "ScintillaEdit.h",
+		GenerateFile(os.path.dirname(sys.argv[0])+"/ScintillaEdit.h.template", "ScintillaEdit.h",
 			"/* ", True, printHFile(f, options))
-		GenerateFile("../ScintillaEditPy/ScintillaConstants.py.template",
-			"../ScintillaEditPy/ScintillaConstants.py",
+		GenerateFile(os.path.dirname(sys.argv[0])+"../ScintillaEditPy/ScintillaConstants.py.template",
+			"ScintillaConstants.py",
 			"# ", True, printPyFile(f, options))
 		if checkGTK:
 			names = set(methodNames(f))
@@ -258,7 +259,7 @@ def main(argv):
 		raise
 
 	if cleanGenerated:
-		for file in ["ScintillaEdit.cpp", "ScintillaEdit.h", "../ScintillaEditPy/ScintillaConstants.py"]:
+		for file in ["ScintillaEdit.cpp", "ScintillaEdit.h", "ScintillaConstants.py"]:
 			try:
 				os.remove(file)
 			except OSError:
