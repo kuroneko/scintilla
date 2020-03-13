@@ -37,6 +37,7 @@
 #include <QTextLayout>
 #include <QTextLine>
 #include <QLibrary>
+#include <QScreen>
 
 namespace Scintilla {
 
@@ -339,7 +340,7 @@ void SurfaceImpl::RoundedRectangle(PRectangle rc,
 {
 	PenColour(fore);
 	BrushColour(back);
-	GetPainter()->drawRoundRect(QRectFFromPRect(rc));
+	GetPainter()->drawRoundedRect(QRectFFromPRect(rc), 25.0, 25.0);
 }
 
 void SurfaceImpl::AlphaRectangle(PRectangle rc,
@@ -651,22 +652,23 @@ void Window::SetPositionRelative(PRectangle rc, const Window *relativeTo)
 	int oy = oPos.y();
 	ox += rc.left;
 	oy += rc.top;
+    int sizex = rc.right - rc.left;
+    int sizey = rc.bottom - rc.top;
 
-	QDesktopWidget *desktop = QApplication::desktop();
-	QRect rectDesk = desktop->availableGeometry(QPoint(ox, oy));
-	/* do some corrections to fit into screen */
-	int sizex = rc.right - rc.left;
-	int sizey = rc.bottom - rc.top;
-	int screenWidth = rectDesk.width();
-	if (ox < rectDesk.x())
-		ox = rectDesk.x();
-	if (sizex > screenWidth)
-		ox = rectDesk.x(); /* the best we can do */
-	else if (ox + sizex > rectDesk.right())
-		ox = rectDesk.right() - sizex;
-	if (oy + sizey > rectDesk.bottom())
-		oy = rectDesk.bottom() - sizey;
-
+	QScreen *screen = QApplication::screenAt(QPoint(ox, oy));
+	if (screen != nullptr) {
+        QRect rectDesk = screen->availableGeometry();
+        /* do some corrections to fit into screen */
+        int screenWidth = rectDesk.width();
+        if (ox < rectDesk.x())
+            ox = rectDesk.x();
+        if (sizex > screenWidth)
+            ox = rectDesk.x(); /* the best we can do */
+        else if (ox + sizex > rectDesk.right())
+            ox = rectDesk.right() - sizex;
+        if (oy + sizey > rectDesk.bottom())
+            oy = rectDesk.bottom() - sizey;
+    }
 	Q_ASSERT(wid);
 	window(wid)->move(ox, oy);
 	window(wid)->resize(sizex, sizey);
@@ -733,8 +735,13 @@ PRectangle Window::GetMonitorRect(Point pt)
 {
 	QPoint originGlobal = window(wid)->mapToGlobal(QPoint(0, 0));
 	QPoint posGlobal = window(wid)->mapToGlobal(QPoint(pt.x, pt.y));
-	QDesktopWidget *desktop = QApplication::desktop();
-	QRect rectScreen = desktop->availableGeometry(posGlobal);
+
+	QScreen *screen = QApplication::screenAt(posGlobal);
+	if (screen == nullptr) {
+	    // if we're off the screen, get the dimensions of the primary.
+	    screen = QApplication::primaryScreen();
+	}
+	QRect rectScreen = screen->availableGeometry();
 	rectScreen.translate(-originGlobal.x(), -originGlobal.y());
 	return PRectangle(rectScreen.left(), rectScreen.top(),
 	        rectScreen.right(), rectScreen.bottom());
