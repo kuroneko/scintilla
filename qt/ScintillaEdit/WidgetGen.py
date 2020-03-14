@@ -242,7 +242,7 @@ def main(argv):
 			"/* ", True, printCPPFile(f, options))
 		GenerateFile(os.path.dirname(sys.argv[0])+"/ScintillaEdit.h.template", "ScintillaEdit.h",
 			"/* ", True, printHFile(f, options))
-		GenerateFile(os.path.dirname(sys.argv[0])+"../ScintillaEditPy/ScintillaConstants.py.template",
+		GenerateFile(os.path.dirname(sys.argv[0])+"/../ScintillaEditPy/ScintillaConstants.py.template",
 			"ScintillaConstants.py",
 			"# ", True, printPyFile(f, options))
 		if checkGTK:
